@@ -5,9 +5,9 @@
 #include <mutex>
 #include <fstream>
 
-#define STORE_FILE "store/dumpFile"
+#define STORE_FILE "./store/dumpFile"
 
-std::mutex mtx;    
+std::mutex mtx;
 std::string delimiter = ":";
 
 template <typename K, typename V>
@@ -28,40 +28,51 @@ public:
     void set_value(V);
 
     //用于保存指向不同level的数组
-    Node<K,V> **forward;
+    Node<K, V> **forward;
 
     int nodeLevel;
+
 private:
     K key;
     V value;
 };
 
 template <typename K, typename V>
-Node<K, V>::Node(const K key, const V value, int level) {
+Node<K, V>::Node(const K key, const V value, int level)
+{
     this->key = key;
     this->value = value;
-    this->nodeLevel = level; 
+    this->nodeLevel = level;
 
     // level + 1，level从0开始
-    this->forward = new Node<K, V>*[level+1];
-    
-	// 将其初始化为0
-    memset(this->forward, 0, sizeof(Node<K, V>*)*(level+1));
+    this->forward = new Node<K, V> *[level + 1];
+
+    // 将其初始化为0
+    memset(this->forward, 0, sizeof(Node<K, V> *) * (level + 1));
 };
 
-template<typename K, typename V> 
-Node<K, V>::~Node() {
-    delete []forward;
+template <typename K, typename V>
+Node<K, V>::~Node()
+{
+    delete[] forward;
 };
 
-template<typename K, typename V> 
-K Node<K, V>::get_key() const {
+template <typename K, typename V>
+K Node<K, V>::get_key() const
+{
     return key;
 };
 
-template<typename K, typename V> 
-V Node<K, V>::get_value() const {
+template <typename K, typename V>
+V Node<K, V>::get_value() const
+{
     return value;
+};
+
+template <typename K, typename V>
+void Node<K, V>::set_value(V value)
+{
+    this->value=value;
 };
 
 template <typename K, typename V>
@@ -171,15 +182,19 @@ int SkipList<K, V>::insert_element(const K key, const V value)
     return 0;
 }
 
-//打印跳表 
-template<typename K, typename V> 
-void SkipList<K, V>::display_list() {
+//打印跳表
+template <typename K, typename V>
+void SkipList<K, V>::display_list()
+{
 
-    std::cout << "\n*****Skip List*****"<<"\n"; 
-    for (int i = 0; i <= _skip_list_level; i++) {
-        Node<K, V> *node = this->_header->forward[i]; 
+    std::cout << "\n*****Skip List*****"
+              << "\n";
+    for (int i = 0; i <= _skip_list_level; i++)
+    {
+        Node<K, V> *node = this->_header->forward[i];
         std::cout << "Level " << i << ": ";
-        while (node != NULL) {
+        while (node != NULL)
+        {
             std::cout << node->get_key() << ":" << node->get_value() << ";";
             node = node->forward[i];
         }
@@ -192,7 +207,7 @@ template <typename K, typename V>
 void SkipList<K, V>::dump_file()
 {
 
-    std::cout << "\n*****Dump file*****"<<std::endl;
+    std::cout << "\n*****Dump file*****" << std::endl;
     _file_writer.open(STORE_FILE);
     Node<K, V> *current = _header->forward[0];
     while (current)
@@ -208,48 +223,57 @@ void SkipList<K, V>::dump_file()
 }
 
 //从磁盘中加载数据
-template<typename K, typename V> 
-void SkipList<K, V>::load_file() {
+template <typename K, typename V>
+void SkipList<K, V>::load_file()
+{
 
     _file_reader.open(STORE_FILE);
-    std::cout << "\n*****Load file*****"<<std::endl;
+    std::cout << "\n*****Load file*****" << std::endl;
     std::string line;
-    std::string* key = new std::string();
-    std::string* value = new std::string();
+    std::string *key = new std::string();
+    std::string *value = new std::string();
 
-    while(getline(_file_reader,line)){
-        get_key_value_from_string(line,key,value);
-        if (key->empty() || value->empty()) {
+    while (getline(_file_reader, line))
+    {
+        get_key_value_from_string(line, key, value);
+        if (key->empty() || value->empty())
+        {
             std::cout << "error data ——  key:" << key << "value:" << value << std::endl;
             continue;
         }
-        insert_element(key, value);
-        std::cout << "key:" << key << "value:" << value << std::endl;
+        insert_element(*key, *value);
+        std::cout << "key:" << *key <<'\t'<< "value:" << *value << std::endl;
     }
     _file_reader.close();
-}   
+}
 
-template<typename K, typename V>    
-int SkipList<K, V>::size() {
+template <typename K, typename V>
+int SkipList<K, V>::size()
+{
     return _element_count;
 }
 
-template<typename K, typename V>
-void SkipList<K, V>::get_key_value_from_string(const std::string& str, std::string* key, std::string* value) {
-    if(!is_valid_string(str)) {
+template <typename K, typename V>
+void SkipList<K, V>::get_key_value_from_string(const std::string &str, std::string *key, std::string *value)
+{
+    if (!is_valid_string(str))
+    {
         return;
     }
     *key = str.substr(0, str.find(delimiter));
-    *value = str.substr(str.find(delimiter)+1, str.length());
+    *value = str.substr(str.find(delimiter) + 1, str.length());
 }
 
-template<typename K, typename V>
-bool SkipList<K, V>::is_valid_string(const std::string& str) {
+template <typename K, typename V>
+bool SkipList<K, V>::is_valid_string(const std::string &str)
+{
 
-    if (str.empty()) {
+    if (str.empty())
+    {
         return false;
     }
-    if (str.find(delimiter) == std::string::npos) {
+    if (str.find(delimiter) == std::string::npos)
+    {
         return false;
     }
     return true;
@@ -279,7 +303,7 @@ void SkipList<K, V>::delete_element(K key)
     {
         std::cout << "Key: " << key << " do not existed." << std::endl;
         mtx.unlock();
-        return ;
+        return;
     }
 
     for (int i = current->nodeLevel; i >= 0; --i)
@@ -296,14 +320,17 @@ void SkipList<K, V>::delete_element(K key)
     return;
 }
 
-template<typename K, typename V>
-int SkipList<K, V>::change_element(K key, V value) {
+template <typename K, typename V>
+int SkipList<K, V>::change_element(K key, V value)
+{
     mtx.lock();
 
     Node<K, V> *current = this->_header;
 
-    for (int i = _skip_list_level; i >= 0; --i) {
-        while (current->forward[i] && current->forward[i]->get_key() < key) {
+    for (int i = _skip_list_level; i >= 0; --i)
+    {
+        while (current->forward[i] && current->forward[i]->get_key() < key)
+        {
             current = current->forward[i];
         }
     }
@@ -311,23 +338,80 @@ int SkipList<K, V>::change_element(K key, V value) {
 
     // 接下来对 key 的存在做判定
     current = current->forward[0];
-    if (!current || current->get_key() != key) {
-        std::cout<<"Key: "<<key<<" do not existed."<<std::endl;
+    if (!current || current->get_key() != key)
+    {
+        std::cout << "Key: " << key << " do not existed." << std::endl;
         mtx.unlock();
         return 1;
     }
 
-    if(current->set_value(value)) {
-        std::cout<<"Key: "<<key<<" change value failed."<<std::endl;
-        mtx.unlock();
-        return 1;
-    }
-
+    current->set_value(value);
     std::cout << "Successfully changed key:" << key << ", value:" << value << std::endl;
 
     mtx.unlock();
     return 0;
 }
 
+template <typename K, typename V>
+bool SkipList<K, V>::search_element(K key)
+{
 
+    std::cout << "\n*****search_element*****" << std::endl;
+    Node<K, V> *current = _header;
 
+    for (int i = _skip_list_level; i >= 0; --i)
+    {
+        while (current->forward[i] && current->forward[i]->get_key() < key)
+        {
+            current = current->forward[i];
+        }
+    }
+
+    current = current->forward[0];
+
+    if (current && current->get_key() == key)
+    {
+        std::cout << "Found key: " << key << ", value: " << current->get_value() << std::endl;
+        return true;
+    }
+
+    std::cout << "Not Found Key:" << key << std::endl;
+    return false;
+}
+
+template <typename K, typename V>
+SkipList<K, V>::SkipList(int max_level) : _max_level(max_level), _skip_list_level(0), _element_count(0)
+{
+    K k;
+    V v;
+    this->_header = new Node<K, V>(k, v, _max_level);
+};
+
+template <typename K, typename V>
+SkipList<K, V>::~SkipList()
+{
+
+    if (_file_writer.is_open())
+    {
+        _file_writer.close();
+    }
+    if (_file_reader.is_open())
+    {
+        _file_reader.close();
+    }
+    
+    delete _header;
+}
+
+template <typename K, typename V>
+int SkipList<K, V>::get_random_level()
+{
+
+    int k = 0;
+    while (rand() % 2)
+    {
+        ++k;
+    }
+    k = (k < _max_level) ? k : _max_level;
+    return k;
+};
